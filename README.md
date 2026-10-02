@@ -60,6 +60,12 @@ To take a version down, delete its archive from the release (or the
 release itself), then remove its records in a pull request; `check`
 refuses a removal while the archive is still there.
 
+While the registry is experimental, `replace: true` replaces a version
+published with another archive, through a pull request titled
+`replace: ...`, the one kind `check` lets change records. Lock files that
+recorded the old version need updating (`bazel mod deps
+--lockfile_mode=update`).
+
 ```
 action.yml            the action
 scripts/publish.ts    upload and write the records

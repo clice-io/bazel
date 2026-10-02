@@ -2,9 +2,10 @@
 /// release with those bytes and holds that MODULE.bazel, and (with BASE, the
 /// pull request's base commit) no published record changes. A record goes
 /// only after its archive: to take a version down, delete its asset (or its
-/// release) first, then remove its records in a pull request.
+/// release) first, then remove its records in a pull request. A pull request
+/// titled "replace: ..." may change records (publish.ts --replace).
 ///
-///   [BASE=<commit>] node scripts/check.ts
+///   [BASE=<commit>] [TITLE=<pull request title>] node scripts/check.ts
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -22,7 +23,11 @@ if (base) {
   const removed = new Set<string>();
   for (const line of git(["diff", "--name-status", "--no-renames", "--diff-filter=DM", base, "HEAD", "--", "modules"]).split("\n").filter(Boolean)) {
     const [status, file] = line.split("\t");
-    if (status === "M") fail(`${file}: a published record cannot change`);
+    if (status === "M") {
+      if (!process.env.TITLE?.startsWith("replace:")) fail(`${file}: a published record cannot change`);
+      console.log(`${file}: replaced`);
+      continue;
+    }
     const [, name, version] = file!.split("/");
     removed.add(releaseTag(name!, version!));
   }

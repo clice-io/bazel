@@ -8,6 +8,9 @@ inputs:
   token:
     description: A token that can write to clice-io/bazel (releases, branches, pull requests)
     required: true
+  replace:
+    description: Replace versions published with other archives (the registry's experimental days)
+    default: "false"
 
 runs:
   using: composite
@@ -34,7 +37,8 @@ runs:
           echo "::error::no file matches ${{ inputs.archives }}"
           exit 1
         fi
-        node __bazel_registry/scripts/publish.ts "${files[@]}"
+        replace=(); [[ "${{ inputs.replace }}" == true ]] && replace=(--replace)
+        node __bazel_registry/scripts/publish.ts "${replace[@]}" "${files[@]}"
     - name: Create pull request
       id: create-pr
       uses: peter-evans/create-pull-request@v7
@@ -44,7 +48,7 @@ runs:
         # One branch per run: two runs, of one repository or of several, never
         # replace each other's records.
         branch: publish/${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}
-        title: "publish: modules from ${{ github.repository }}"
+        title: "${{ inputs.replace == 'true' && 'replace' || 'publish' }}: modules from ${{ github.repository }}"
         body: |
           Records of the modules published by [`${{ github.repository }}@${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}), run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
         commit-message: "publish: modules from ${{ github.repository }}"
