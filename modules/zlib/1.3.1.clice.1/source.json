@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-gbV/JzRbKc4OYhF0XyuEdpqlwM+c/F3frlIYS8QJVAM=",
+  "strip_prefix": "zlib-1.3.1.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/zlib-1.3.1.clice.1/zlib-1.3.1.clice.1.tar.gz"
+}

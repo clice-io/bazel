@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-v56rsaZg4USbmtUm+okArE5NpH4IKaCFKVCoqf6vvsQ=",
+  "strip_prefix": "libuv-1.52.0.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/libuv-1.52.0.clice.1/libuv-1.52.0.clice.1.tar.gz"
+}
