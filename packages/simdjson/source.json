@@ -1,0 +1,5 @@
+{
+  "url": "https://github.com/simdjson/simdjson/archive/refs/tags/v4.2.4.tar.gz",
+  "sha256": "6f942d018561a6c30838651a386a17e6e4abbfc396afd0f62740dea1810dedea",
+  "strip_prefix": "simdjson-4.2.4"
+}

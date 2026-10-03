@@ -2,7 +2,8 @@
 
 The Bazel registry for [clice](https://github.com/clice-io/clice): modules
 we build ourselves and do not publish to the Bazel Central Registry,
-starting with [xclang](https://github.com/clice-io/xclang).
+[xclang](https://github.com/clice-io/xclang) and the third-party libraries
+we package (packages/).
 
 ```
 # .bazelrc
@@ -12,7 +13,7 @@ common --registry=https://bcr.bazel.build/
 
 ```starlark
 # MODULE.bazel
-bazel_dep(name = "xclang", version = "23.1.2.4")
+bazel_dep(name = "xclang", version = "23.1.2.5")
 ```
 
 Naming registries replaces the default one, so the Bazel Central Registry
@@ -66,9 +67,34 @@ published with another archive, through a pull request titled
 recorded the old version need updating (`bazel mod deps
 --lockfile_mode=update`).
 
+## Packages
+
+The third-party C and C++ libraries clice's projects use are packaged here,
+each in `packages/<name>/`, and none is taken from the Bazel Central
+Registry: we decide how each one is built, on every host xclang has,
+Windows (MinGW) included.
+
+```
+packages/<name>/source.json   the library's release: url, sha256, strip_prefix
+packages/<name>/MODULE.bazel  the module: <name>, version <upstream>.clice.<n>
+packages/<name>/BUILD.bazel   how it builds (and any other file of the module)
+packages/<name>/test/         a package that uses it
+```
+
+A module's source archive is the release's source, checked by its sha256,
+with its own Bazel files taken out and the package's put in
+(`scripts/package.ts`). `packages` builds every package's archive, builds
+and tests every package's `test/` with xclang on Linux, macOS and Windows,
+x86-64 and arm64, and on `main` publishes the archives through the action:
+an unchanged package gives the same bytes, so only new versions are
+published. A version's `.clice.<n>` counts our changes to a release's
+packaging, and keeps a version of ours apart from the Bazel Central
+Registry's of the same release. Changing a package means a new `<n>`.
+
 ```
 action.yml            the action
 scripts/publish.ts    upload and write the records
 scripts/check.ts      the check pull requests wait for
 scripts/pages.ts      the registry on gh-pages
+scripts/package.ts    the packages' archives and their tests' workspace
 ```

@@ -1,0 +1,43 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# simdjson's CMake options: SIMDJSON_EXCEPTIONS, on unless a build sets
+# --@simdjson//:exceptions=false. Its define is public, so the library and
+# what includes it agree on the API.
+bool_flag(
+    name = "exceptions",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "no_exceptions",
+    flag_values = {":exceptions": "false"},
+)
+
+cc_library(
+    name = "src_headers",
+    textual_hdrs = glob(
+        [
+            "src/**/*.h",
+            "src/**/*.cpp",
+        ],
+        exclude = ["src/simdjson.cpp"],
+    ),
+    strip_include_prefix = "src",
+)
+
+# The static library of simdjson's CMake build, with threads.
+cc_library(
+    name = "simdjson",
+    srcs = ["src/simdjson.cpp"],
+    hdrs = glob(["include/**/*.h"]),
+    copts = ["-w"],
+    defines = ["SIMDJSON_THREADS_ENABLED=1"] + select({
+        ":no_exceptions": ["SIMDJSON_EXCEPTIONS=0"],
+        "//conditions:default": ["SIMDJSON_EXCEPTIONS=1"],
+    }),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+    deps = [":src_headers"],
+)

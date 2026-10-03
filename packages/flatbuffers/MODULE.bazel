@@ -1,0 +1,6 @@
+module(
+    name = "flatbuffers",
+    version = "25.2.10.clice.1",
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.25")
