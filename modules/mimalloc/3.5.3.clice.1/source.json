@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-aBrJKYFahSf8wCX3HAb5qPorM69glIcxBAxrsH+tadQ=",
+  "strip_prefix": "mimalloc-3.5.3.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/mimalloc-3.5.3.clice.1/mimalloc-3.5.3.clice.1.tar.gz"
+}
