@@ -52,9 +52,17 @@ function packages(names: string[]): string[] {
 async function download(source: Source): Promise<string> {
   const file = path.join(WORK, "downloads", `${source.sha256}-${path.basename(new URL(source.url).pathname)}`);
   if (!fs.existsSync(file)) {
-    const response = await fetch(source.url);
-    if (!response.ok) fail(`${source.url}: ${response.status}`);
-    const bytes = Buffer.from(await response.arrayBuffer());
+    let bytes: Buffer | undefined;
+    for (let attempt = 1; !bytes; attempt++) {
+      try {
+        const response = await fetch(source.url);
+        if (!response.ok) throw new Error(`${response.status}`);
+        bytes = Buffer.from(await response.arrayBuffer());
+      } catch (error) {
+        if (attempt === 3) fail(`${source.url}: ${error}`);
+        console.log(`${source.url}: ${error}, again`);
+      }
+    }
     const sha256 = crypto.createHash("sha256").update(bytes).digest("hex");
     if (sha256 !== source.sha256) fail(`${source.url}: sha256 ${sha256}, not ${source.sha256}`);
     fs.mkdirSync(path.dirname(file), { recursive: true });
