@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-nOpNi8fQ71Yo6EvfGwkvc5rrOt9UP0qSi/ozr7QmZFM=",
+  "strip_prefix": "croaring-5.2.2.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/croaring-5.2.2.clice.1/croaring-5.2.2.clice.1.tar.gz"
+}
