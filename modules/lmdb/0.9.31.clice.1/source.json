@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-xYMBViTiRQwxXQKOyiYj0E0RAZBRROdbxrLUpJz2q5U=",
+  "strip_prefix": "lmdb-0.9.31.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/lmdb-0.9.31.clice.1/lmdb-0.9.31.clice.1.tar.gz"
+}
