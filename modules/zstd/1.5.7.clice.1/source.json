@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-fpV6WqUIkBBMK8XXi7/CYRnkOgz9xHYdi1d+36QyAr0=",
+  "strip_prefix": "zstd-1.5.7.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/zstd-1.5.7.clice.1/zstd-1.5.7.clice.1.tar.gz"
+}
