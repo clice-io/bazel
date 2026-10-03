@@ -2,14 +2,16 @@
 ///
 ///   packages/<name>/source.json   the library's release: url, sha256 and
 ///                                 strip_prefix
+///   packages/<name>/patches/      changes to its source, applied in order
+///                                 (patch -p1)
 ///   packages/<name>/test/         a package that uses it, built by CI
 ///   packages/<name>/...           everything else: MODULE.bazel (the
 ///                                 module's name and version), BUILD.bazel
 ///                                 and any other file of the module
 ///
 /// The module's source archive is the release's source, checked by its
-/// sha256, without any Bazel file of its own, with the package's files on
-/// top: one directory, <name>-<version>. The same sources give the same
+/// sha256 and patched, without any Bazel file of its own, with the
+/// package's files on top: one directory, <name>-<version>. The same sources give the same
 /// bytes, so publishing an unchanged package again is a no-op.
 ///
 ///   node scripts/package.ts archive <dir> [<name>...]
@@ -82,11 +84,15 @@ async function archive(name: string, dir: string): Promise<string> {
   run("tar", ["-xf", await download(source), "-C", stage]);
   const root = path.join(stage, top);
   fs.renameSync(path.join(stage, source.strip_prefix), root);
+  const patches = path.join(pkg, "patches");
+  for (const patch of fs.existsSync(patches) ? fs.readdirSync(patches).filter((f) => f.endsWith(".patch")).sort() : []) {
+    run("patch", ["-p1", "-F0", "--forward", "--no-backup-if-mismatch", "-d", root, "-i", path.join(patches, patch)]);
+  }
   for (const entry of fs.readdirSync(root, { recursive: true }) as string[]) {
     if (BAZEL_FILES.has(path.basename(entry))) fs.rmSync(path.join(root, entry), { force: true });
   }
   for (const entry of fs.readdirSync(pkg)) {
-    if (entry !== "source.json" && entry !== "test") fs.cpSync(path.join(pkg, entry), path.join(root, entry), { recursive: true });
+    if (!["source.json", "patches", "test"].includes(entry)) fs.cpSync(path.join(pkg, entry), path.join(root, entry), { recursive: true });
   }
   /// The same bytes from the same sources: sorted, no owners or times, the
   /// same modes whatever the umask.
