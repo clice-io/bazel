@@ -27,6 +27,13 @@ config_setting(
     flag_values = {":skip_collect_on_exit": "true"},
 )
 
+# Its assertions as CMake's MI_DEBUG=DEFAULT has them: internal checks in a
+# debug build (-c dbg), none otherwise.
+config_setting(
+    name = "dbg",
+    values = {"compilation_mode": "dbg"},
+)
+
 config_setting(
     name = "overrides_on_macos",
     constraint_values = ["@platforms//os:macos"],
@@ -49,6 +56,9 @@ cc_library(
         "//conditions:default": ["-pthread"],
     }),
     local_defines = ["MI_STATIC_LIB"] + select({
+        ":dbg": ["MI_DEBUG=2"],
+        "//conditions:default": ["MI_DEBUG=0"],
+    }) + select({
         ":overrides": ["MI_MALLOC_OVERRIDE"],
         "//conditions:default": [],
     }) + select({
