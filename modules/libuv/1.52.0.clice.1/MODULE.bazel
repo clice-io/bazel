@@ -1,0 +1,7 @@
+module(
+    name = "libuv",
+    version = "1.52.0.clice.1",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_cc", version = "0.2.25")

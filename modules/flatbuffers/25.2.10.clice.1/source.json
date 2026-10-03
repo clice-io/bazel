@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-ZiPXpann4rtZwGV7nh9mxKjc+zwh2GuTwEQIe6XIHpo=",
+  "strip_prefix": "flatbuffers-25.2.10.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/flatbuffers-25.2.10.clice.1/flatbuffers-25.2.10.clice.1.tar.gz"
+}
