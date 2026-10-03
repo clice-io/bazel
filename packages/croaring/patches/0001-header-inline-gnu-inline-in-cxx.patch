@@ -1,0 +1,460 @@
+--- a/include/roaring/array_util.h
++++ b/include/roaring/array_util.h
+@@ -48,7 +48,7 @@
+  * followed by a scalar in-block scan that recovers the exact insertion
+  * point required by the binarySearch contract.
+  */
+-inline int32_t binarySearch(const uint16_t *array, int32_t lenarray,
++CROARING_HEADER_INLINE int32_t binarySearch(const uint16_t *array, int32_t lenarray,
+                             uint16_t ikey) {
+     const int32_t gap = 16;
+     if (lenarray < gap) {
+--- a/include/roaring/bitset/bitset.h
++++ b/include/roaring/bitset/bitset.h
+@@ -74,17 +74,17 @@
+ bool bitset_resize(bitset_t *bitset, size_t newarraysize, bool padwithzeroes);
+ 
+ /* returns how many bytes of memory the backend buffer uses */
+-inline size_t bitset_size_in_bytes(const bitset_t *bitset) {
++CROARING_HEADER_INLINE size_t bitset_size_in_bytes(const bitset_t *bitset) {
+     return bitset->arraysize * sizeof(uint64_t);
+ }
+ 
+ /* returns how many bits can be accessed */
+-inline size_t bitset_size_in_bits(const bitset_t *bitset) {
++CROARING_HEADER_INLINE size_t bitset_size_in_bits(const bitset_t *bitset) {
+     return bitset->arraysize * 64;
+ }
+ 
+ /* returns how many words (64-bit) of memory the backend buffer uses */
+-inline size_t bitset_size_in_words(const bitset_t *bitset) {
++CROARING_HEADER_INLINE size_t bitset_size_in_words(const bitset_t *bitset) {
+     return bitset->arraysize;
+ }
+ 
+@@ -106,7 +106,7 @@
+ 
+ /* Set the ith bit. Attempts to resize the bitset if needed (may silently fail)
+  */
+-inline void bitset_set(bitset_t *bitset, size_t i) {
++CROARING_HEADER_INLINE void bitset_set(bitset_t *bitset, size_t i) {
+     size_t shiftedi = i / 64;
+     if (shiftedi >= bitset->arraysize) {
+         if (!bitset_grow(bitset, shiftedi + 1)) {
+@@ -118,7 +118,7 @@
+ 
+ /* Set the ith bit to the specified value. Attempts to resize the bitset if
+  * needed (may silently fail) */
+-inline void bitset_set_to_value(bitset_t *bitset, size_t i, bool flag) {
++CROARING_HEADER_INLINE void bitset_set_to_value(bitset_t *bitset, size_t i, bool flag) {
+     size_t shiftedi = i / 64;
+     uint64_t mask = ((uint64_t)1) << (i % 64);
+     uint64_t dynmask = ((uint64_t)flag) << (i % 64);
+@@ -134,7 +134,7 @@
+ }
+ 
+ /* Get the value of the ith bit.  */
+-inline bool bitset_get(const bitset_t *bitset, size_t i) {
++CROARING_HEADER_INLINE bool bitset_get(const bitset_t *bitset, size_t i) {
+     size_t shiftedi = i / 64;
+     if (shiftedi >= bitset->arraysize) {
+         return false;
+@@ -210,7 +210,7 @@
+     //.....
+   }
+   */
+-inline bool bitset_next_set_bit(const bitset_t *bitset, size_t *i) {
++CROARING_HEADER_INLINE bool bitset_next_set_bit(const bitset_t *bitset, size_t *i) {
+     size_t x = *i / 64;
+     if (x >= bitset->arraysize) {
+         return false;
+@@ -242,7 +242,7 @@
+     //.....
+   }
+   */
+-inline size_t bitset_next_set_bits(const bitset_t *bitset, size_t *buffer,
++CROARING_HEADER_INLINE size_t bitset_next_set_bits(const bitset_t *bitset, size_t *buffer,
+                                    size_t capacity, size_t *startfrom) {
+     if (capacity == 0) return 0;  // sanity check
+     size_t x = *startfrom / 64;
+@@ -279,7 +279,7 @@
+ typedef bool (*bitset_iterator)(size_t value, void *param);
+ 
+ // return true if uninterrupted
+-inline bool bitset_for_each(const bitset_t *b, bitset_iterator iterator,
++CROARING_HEADER_INLINE bool bitset_for_each(const bitset_t *b, bitset_iterator iterator,
+                             void *ptr) {
+     size_t base = 0;
+     for (size_t i = 0; i < b->arraysize; ++i) {
+@@ -295,7 +295,7 @@
+     return true;
+ }
+ 
+-inline void bitset_print(const bitset_t *b) {
++CROARING_HEADER_INLINE void bitset_print(const bitset_t *b) {
+     printf("{");
+     for (size_t i = 0; bitset_next_set_bit(b, &i); i++) {
+         printf("%zu, ", i);
+--- a/include/roaring/bitset_util.h
++++ b/include/roaring/bitset_util.h
+@@ -351,7 +351,7 @@
+ /**
+  * Fast Harley-Seal AVX population count function
+  */
+-inline static uint64_t avx2_harley_seal_popcount256(const __m256i *data,
++CROARING_HEADER_INLINE static uint64_t avx2_harley_seal_popcount256(const __m256i *data,
+                                                     const uint64_t size) {
+     __m256i total = _mm256_setzero_si256();
+     __m256i ones = _mm256_setzero_si256();
+--- a/include/roaring/containers/array.h
++++ b/include/roaring/containers/array.h
+@@ -339,7 +339,7 @@
+ }
+ 
+ /* Check whether x is present.  */
+-inline bool array_container_contains(const array_container_t *arr,
++CROARING_HEADER_INLINE bool array_container_contains(const array_container_t *arr,
+                                      uint16_t pos) {
+     /**
+      * SIMD Quad algorithm
+@@ -448,19 +448,19 @@
+ }
+ 
+ /* Returns the smallest value (assumes not empty) */
+-inline uint16_t array_container_minimum(const array_container_t *arr) {
++CROARING_HEADER_INLINE uint16_t array_container_minimum(const array_container_t *arr) {
+     if (arr->cardinality == 0) return 0;
+     return arr->array[0];
+ }
+ 
+ /* Returns the largest value (assumes not empty) */
+-inline uint16_t array_container_maximum(const array_container_t *arr) {
++CROARING_HEADER_INLINE uint16_t array_container_maximum(const array_container_t *arr) {
+     if (arr->cardinality == 0) return 0;
+     return arr->array[arr->cardinality - 1];
+ }
+ 
+ /* Returns the number of values equal or smaller than x */
+-inline int array_container_rank(const array_container_t *arr, uint16_t x) {
++CROARING_HEADER_INLINE int array_container_rank(const array_container_t *arr, uint16_t x) {
+     const int32_t idx = binarySearch(arr->array, arr->cardinality, x);
+     const bool is_present = idx >= 0;
+     if (is_present) {
+@@ -472,7 +472,7 @@
+ 
+ /*  bulk version of array_container_rank(); return number of consumed elements
+  */
+-inline uint32_t array_container_rank_many(const array_container_t *arr,
++CROARING_HEADER_INLINE uint32_t array_container_rank_many(const array_container_t *arr,
+                                           uint64_t start_rank,
+                                           const uint32_t *begin,
+                                           const uint32_t *end, uint64_t *ans) {
+@@ -498,7 +498,7 @@
+ }
+ 
+ /* Returns the index of x , if not exsist return -1 */
+-inline int array_container_get_index(const array_container_t *arr, uint16_t x) {
++CROARING_HEADER_INLINE int array_container_get_index(const array_container_t *arr, uint16_t x) {
+     const int32_t idx = binarySearch(arr->array, arr->cardinality, x);
+     const bool is_present = idx >= 0;
+     if (is_present) {
+@@ -509,7 +509,7 @@
+ }
+ 
+ /* Returns the index of the first value equal or larger than x, or -1 */
+-inline int array_container_index_equalorlarger(const array_container_t *arr,
++CROARING_HEADER_INLINE int array_container_index_equalorlarger(const array_container_t *arr,
+                                                uint16_t x) {
+     const int32_t idx = binarySearch(arr->array, arr->cardinality, x);
+     const bool is_present = idx >= 0;
+--- a/include/roaring/containers/bitset.h
++++ b/include/roaring/containers/bitset.h
+@@ -136,7 +136,7 @@
+ }
+ 
+ /* Get the value of the ith bit.  */
+-inline bool bitset_container_get(const bitset_container_t *bitset,
++CROARING_HEADER_INLINE bool bitset_container_get(const bitset_container_t *bitset,
+                                  uint16_t pos) {
+     uint64_t word = bitset->words[pos >> 6];
+     const uint64_t p = pos;
+@@ -193,7 +193,7 @@
+ }
+ 
+ /* Get the value of the ith bit.  */
+-inline bool bitset_container_get(const bitset_container_t *bitset,
++CROARING_HEADER_INLINE bool bitset_container_get(const bitset_container_t *bitset,
+                                  uint16_t pos) {
+     const uint64_t word = bitset->words[pos >> 6];
+     return (word >> (pos & 63)) & 1;
+@@ -232,7 +232,7 @@
+ }
+ 
+ /* Check whether `bitset' is present in `array'.  Calls bitset_container_get. */
+-inline bool bitset_container_contains(const bitset_container_t *bitset,
++CROARING_HEADER_INLINE bool bitset_container_contains(const bitset_container_t *bitset,
+                                       uint16_t pos) {
+     return bitset_container_get(bitset, pos);
+ }
+--- a/include/roaring/containers/containers.h
++++ b/include/roaring/containers/containers.h
+@@ -562,7 +562,7 @@
+ /**
+  * Check whether a value is in a container, requires a typecode
+  */
+-inline bool container_contains(
++CROARING_HEADER_INLINE bool container_contains(
+     const container_t *c, uint16_t val,
+     uint8_t typecode  // !!! should be second argument?
+ ) {
+@@ -2452,7 +2452,7 @@
+  * value is present.
+  */
+ CROARING_ALLOW_UNALIGNED
+-inline bool container_iterator_next(const container_t *c, uint8_t typecode,
++CROARING_HEADER_INLINE bool container_iterator_next(const container_t *c, uint8_t typecode,
+                                     roaring_container_iterator_t *it,
+                                     uint16_t *value) {
+     switch (typecode) {
+@@ -2521,7 +2521,7 @@
+  * value is present.
+  */
+ CROARING_ALLOW_UNALIGNED
+-inline bool container_iterator_prev(const container_t *c, uint8_t typecode,
++CROARING_HEADER_INLINE bool container_iterator_prev(const container_t *c, uint8_t typecode,
+                                     roaring_container_iterator_t *it,
+                                     uint16_t *value) {
+     switch (typecode) {
+--- a/include/roaring/containers/run.h
++++ b/include/roaring/containers/run.h
+@@ -108,7 +108,7 @@
+ /**
+  * Good old binary search through rle data
+  */
+-inline int32_t interleavedBinarySearch(const rle16_t *array, int32_t lenarray,
++CROARING_HEADER_INLINE int32_t interleavedBinarySearch(const rle16_t *array, int32_t lenarray,
+                                        uint16_t ikey) {
+     int32_t low = 0;
+     int32_t high = lenarray - 1;
+@@ -257,7 +257,7 @@
+ }
+ 
+ /* Check whether `pos' is present in `run'.  */
+-inline bool run_container_contains(const run_container_t *run, uint16_t pos) {
++CROARING_HEADER_INLINE bool run_container_contains(const run_container_t *run, uint16_t pos) {
+     int32_t index = interleavedBinarySearch(run->runs, run->n_runs, pos);
+     if (index >= 0) return true;
+     index = -index - 2;  // points to preceding value, possibly -1
+@@ -560,13 +560,13 @@
+                           container_t **hic, uint16_t offset);
+ 
+ /* Returns the smallest value (assumes not empty) */
+-inline uint16_t run_container_minimum(const run_container_t *run) {
++CROARING_HEADER_INLINE uint16_t run_container_minimum(const run_container_t *run) {
+     if (run->n_runs == 0) return 0;
+     return run->runs[0].value;
+ }
+ 
+ /* Returns the largest value (assumes not empty) */
+-inline uint16_t run_container_maximum(const run_container_t *run) {
++CROARING_HEADER_INLINE uint16_t run_container_maximum(const run_container_t *run) {
+     if (run->n_runs == 0) return 0;
+     return run->runs[run->n_runs - 1].value + run->runs[run->n_runs - 1].length;
+ }
+@@ -584,7 +584,7 @@
+ 
+ /* Returns the index of the first run containing a value at least as large as x,
+  * or -1 */
+-inline int run_container_index_equalorlarger(const run_container_t *arr,
++CROARING_HEADER_INLINE int run_container_index_equalorlarger(const run_container_t *arr,
+                                              uint16_t x) {
+     int32_t index = interleavedBinarySearch(arr->runs, arr->n_runs, x);
+     if (index >= 0) return index;
+--- a/include/roaring/portability.h
++++ b/include/roaring/portability.h
+@@ -33,6 +33,17 @@
+ #define __STDC_FORMAT_MACROS 1
+ #endif  // __STDC_FORMAT_MACROS
+ 
++/* The functions the headers define inline, C99-style: one translation unit
++ * of the library defines each externally (extern inline). In C++ they are
++ * GNU inline too, so that C++ code calls that definition instead of emitting
++ * a COMDAT copy of its own, which COFF linkers (MinGW) reject next to it as
++ * a duplicate. */
++#if defined(__cplusplus) && defined(__GNUC__)
++#define CROARING_HEADER_INLINE inline __attribute__((gnu_inline))
++#else
++#define CROARING_HEADER_INLINE inline
++#endif
++
+ #ifdef _MSC_VER
+ #define CROARING_VISUAL_STUDIO 1
+ /**
+@@ -196,7 +207,7 @@
+ /* wrappers for Visual Studio built-ins that look like gcc built-ins
+  * __builtin_ctzll */
+ /** result might be undefined when input_num is zero */
+-inline int roaring_trailing_zeroes(unsigned long long input_num) {
++CROARING_HEADER_INLINE int roaring_trailing_zeroes(unsigned long long input_num) {
+     unsigned long index;
+ #ifdef _WIN64  // highly recommended!!!
+     _BitScanForward64(&index, input_num);
+@@ -214,7 +225,7 @@
+ /* wrappers for Visual Studio built-ins that look like gcc built-ins
+  * __builtin_clzll */
+ /** result might be undefined when input_num is zero */
+-inline int roaring_leading_zeroes(unsigned long long input_num) {
++CROARING_HEADER_INLINE int roaring_leading_zeroes(unsigned long long input_num) {
+     unsigned long index;
+ #ifdef _WIN64  // highly recommended!!!
+     _BitScanReverse64(&index, input_num);
+@@ -239,11 +250,11 @@
+ #define CROARING_INTRINSICS 1
+ #define roaring_unreachable __builtin_unreachable()
+ /** result might be undefined when input_num is zero */
+-inline int roaring_trailing_zeroes(unsigned long long input_num) {
++CROARING_HEADER_INLINE int roaring_trailing_zeroes(unsigned long long input_num) {
+     return __builtin_ctzll(input_num);
+ }
+ /** result might be undefined when input_num is zero */
+-inline int roaring_leading_zeroes(unsigned long long input_num) {
++CROARING_HEADER_INLINE int roaring_leading_zeroes(unsigned long long input_num) {
+     return __builtin_clzll(input_num);
+ }
+ #endif
+--- a/include/roaring/roaring64.h
++++ b/include/roaring/roaring64.h
+@@ -822,7 +822,7 @@
+  * (C17 6.7.2.1p15), and `roaring64_iterator_public_t` is the initial member of
+  * `roaring64_iterator_t`, so this reads the field directly.
+  */
+-inline bool roaring64_iterator_has_value(const roaring64_iterator_t *it) {
++CROARING_HEADER_INLINE bool roaring64_iterator_has_value(const roaring64_iterator_t *it) {
+     return ((const roaring64_iterator_public_t *)it)->has_value;
+ }
+ 
+@@ -830,7 +830,7 @@
+  * Returns the value the iterator currently points to. Should only be called if
+  * `roaring64_iterator_has_value()` returns true.
+  */
+-inline uint64_t roaring64_iterator_value(const roaring64_iterator_t *it) {
++CROARING_HEADER_INLINE uint64_t roaring64_iterator_value(const roaring64_iterator_t *it) {
+     return ((const roaring64_iterator_public_t *)it)->value;
+ }
+ 
+--- a/include/roaring/roaring_array.h
++++ b/include/roaring/roaring_array.h
+@@ -90,7 +90,7 @@
+ /**
+  * Get the index corresponding to a 16-bit key
+  */
+-inline int32_t ra_get_index(const roaring_array_t *ra, uint16_t x) {
++CROARING_HEADER_INLINE int32_t ra_get_index(const roaring_array_t *ra, uint16_t x) {
+     if ((ra->size == 0) || ra->keys[ra->size - 1] == x) return ra->size - 1;
+     return binarySearch(ra->keys, (int32_t)ra->size, x);
+ }
+@@ -98,7 +98,7 @@
+ /**
+  * Retrieves the container at index i, filling in the typecode
+  */
+-inline container_t *ra_get_container_at_index(const roaring_array_t *ra,
++CROARING_HEADER_INLINE container_t *ra_get_container_at_index(const roaring_array_t *ra,
+                                               uint16_t i, uint8_t *typecode) {
+     *typecode = ra->typecodes[i];
+     return ra->containers[i];
+@@ -107,7 +107,7 @@
+ /**
+  * Retrieves the key at index i
+  */
+-inline uint16_t ra_get_key_at_index(const roaring_array_t *ra, uint16_t i) {
++CROARING_HEADER_INLINE uint16_t ra_get_key_at_index(const roaring_array_t *ra, uint16_t i) {
+     return ra->keys[i];
+ }
+ 
+@@ -171,7 +171,7 @@
+  * Set the container at the corresponding index using the specified
+  * typecode.
+  */
+-inline void ra_set_container_at_index(const roaring_array_t *ra, int32_t i,
++CROARING_HEADER_INLINE void ra_set_container_at_index(const roaring_array_t *ra, int32_t i,
+                                       container_t *c, uint8_t typecode) {
+     assert(i < ra->size);
+     ra->containers[i] = c;
+@@ -188,7 +188,7 @@
+  */
+ bool extend_array(roaring_array_t *ra, int32_t k);
+ 
+-inline int32_t ra_get_size(const roaring_array_t *ra) { return ra->size; }
++CROARING_HEADER_INLINE int32_t ra_get_size(const roaring_array_t *ra) { return ra->size; }
+ 
+ static inline int32_t ra_advance_until(const roaring_array_t *ra, uint16_t x,
+                                        int32_t pos) {
+@@ -199,7 +199,7 @@
+ 
+ void ra_downsize(roaring_array_t *ra, int32_t new_length);
+ 
+-inline void ra_replace_key_and_container_at_index(roaring_array_t *ra,
++CROARING_HEADER_INLINE void ra_replace_key_and_container_at_index(roaring_array_t *ra,
+                                                   int32_t i, uint16_t key,
+                                                   container_t *c,
+                                                   uint8_t typecode) {
+--- a/include/roaring/roaring.h
++++ b/include/roaring/roaring.h
+@@ -53,7 +53,7 @@
+  * Returns NULL if the allocation fails.
+  * Client is responsible for calling `roaring_bitmap_free()`.
+  */
+-inline roaring_bitmap_t *roaring_bitmap_create(void) {
++CROARING_HEADER_INLINE roaring_bitmap_t *roaring_bitmap_create(void) {
+     return roaring_bitmap_create_with_capacity(0);
+ }
+ 
+@@ -69,7 +69,7 @@
+  * The bitmap will be in a "clear" state, with no auxiliary allocations.
+  * Since this performs no allocations, the function will not fail.
+  */
+-inline void roaring_bitmap_init_cleared(roaring_bitmap_t *r) {
++CROARING_HEADER_INLINE void roaring_bitmap_init_cleared(roaring_bitmap_t *r) {
+     roaring_bitmap_init_with_capacity(r, 0);
+ }
+ 
+@@ -111,10 +111,10 @@
+  * When setting this flag to false, if any containers are shared, they
+  * are unshared (cloned) immediately.
+  */
+-inline bool roaring_bitmap_get_copy_on_write(const roaring_bitmap_t *r) {
++CROARING_HEADER_INLINE bool roaring_bitmap_get_copy_on_write(const roaring_bitmap_t *r) {
+     return r->high_low_container.flags & ROARING_FLAG_COW;
+ }
+-inline void roaring_bitmap_set_copy_on_write(roaring_bitmap_t *r, bool cow) {
++CROARING_HEADER_INLINE void roaring_bitmap_set_copy_on_write(roaring_bitmap_t *r, bool cow) {
+     if (cow) {
+         r->high_low_container.flags |= ROARING_FLAG_COW;
+     } else {
+@@ -430,7 +430,7 @@
+ /**
+  * Add all values in range [min, max)
+  */
+-inline void roaring_bitmap_add_range(roaring_bitmap_t *r, uint64_t min,
++CROARING_HEADER_INLINE void roaring_bitmap_add_range(roaring_bitmap_t *r, uint64_t min,
+                                      uint64_t max) {
+     if (max <= min || min > (uint64_t)UINT32_MAX + 1) {
+         return;
+@@ -452,7 +452,7 @@
+ /**
+  * Remove all values in range [min, max)
+  */
+-inline void roaring_bitmap_remove_range(roaring_bitmap_t *r, uint64_t min,
++CROARING_HEADER_INLINE void roaring_bitmap_remove_range(roaring_bitmap_t *r, uint64_t min,
+                                         uint64_t max) {
+     if (max <= min || min > (uint64_t)UINT32_MAX + 1) {
+         return;
+@@ -475,7 +475,7 @@
+ /**
+  * Check if value is present
+  */
+-inline bool roaring_bitmap_contains(const roaring_bitmap_t *r, uint32_t val) {
++CROARING_HEADER_INLINE bool roaring_bitmap_contains(const roaring_bitmap_t *r, uint32_t val) {
+     // For performance reasons, this function is inline and uses internal
+     // functions directly.
+ #ifdef __cplusplus

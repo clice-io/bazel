@@ -1,0 +1,19 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# liblmdb, the two-file static library of its Makefile.
+cc_library(
+    name = "lmdb",
+    srcs = [
+        "libraries/liblmdb/mdb.c",
+        "libraries/liblmdb/midl.c",
+        "libraries/liblmdb/midl.h",
+    ],
+    hdrs = ["libraries/liblmdb/lmdb.h"],
+    copts = ["-w"],
+    includes = ["libraries/liblmdb"],
+    linkopts = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["-pthread"],
+    }),
+    visibility = ["//visibility:public"],
+)

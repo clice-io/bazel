@@ -2,14 +2,16 @@
 ///
 ///   packages/<name>/source.json   the library's release: url, sha256 and
 ///                                 strip_prefix
+///   packages/<name>/patches/      changes to its source, applied in order
+///                                 (patch -p1)
 ///   packages/<name>/test/         a package that uses it, built by CI
 ///   packages/<name>/...           everything else: MODULE.bazel (the
 ///                                 module's name and version), BUILD.bazel
 ///                                 and any other file of the module
 ///
 /// The module's source archive is the release's source, checked by its
-/// sha256, without any Bazel file of its own, with the package's files on
-/// top: one directory, <name>-<version>. The same sources give the same
+/// sha256 and patched, without any Bazel file of its own, with the
+/// package's files on top: one directory, <name>-<version>. The same sources give the same
 /// bytes, so publishing an unchanged package again is a no-op.
 ///
 ///   node scripts/package.ts archive <dir> [<name>...]
@@ -50,9 +52,17 @@ function packages(names: string[]): string[] {
 async function download(source: Source): Promise<string> {
   const file = path.join(WORK, "downloads", `${source.sha256}-${path.basename(new URL(source.url).pathname)}`);
   if (!fs.existsSync(file)) {
-    const response = await fetch(source.url);
-    if (!response.ok) fail(`${source.url}: ${response.status}`);
-    const bytes = Buffer.from(await response.arrayBuffer());
+    let bytes: Buffer | undefined;
+    for (let attempt = 1; !bytes; attempt++) {
+      try {
+        const response = await fetch(source.url);
+        if (!response.ok) throw new Error(`${response.status}`);
+        bytes = Buffer.from(await response.arrayBuffer());
+      } catch (error) {
+        if (attempt === 3) fail(`${source.url}: ${error}`);
+        console.log(`${source.url}: ${error}, again`);
+      }
+    }
     const sha256 = crypto.createHash("sha256").update(bytes).digest("hex");
     if (sha256 !== source.sha256) fail(`${source.url}: sha256 ${sha256}, not ${source.sha256}`);
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -82,11 +92,15 @@ async function archive(name: string, dir: string): Promise<string> {
   run("tar", ["-xf", await download(source), "-C", stage]);
   const root = path.join(stage, top);
   fs.renameSync(path.join(stage, source.strip_prefix), root);
+  const patches = path.join(pkg, "patches");
+  for (const patch of fs.existsSync(patches) ? fs.readdirSync(patches).filter((f) => f.endsWith(".patch")).sort() : []) {
+    run("patch", ["-p1", "-F0", "--forward", "--no-backup-if-mismatch", "-d", root, "-i", path.join(patches, patch)]);
+  }
   for (const entry of fs.readdirSync(root, { recursive: true }) as string[]) {
     if (BAZEL_FILES.has(path.basename(entry))) fs.rmSync(path.join(root, entry), { force: true });
   }
   for (const entry of fs.readdirSync(pkg)) {
-    if (entry !== "source.json" && entry !== "test") fs.cpSync(path.join(pkg, entry), path.join(root, entry), { recursive: true });
+    if (!["source.json", "patches", "test"].includes(entry)) fs.cpSync(path.join(pkg, entry), path.join(root, entry), { recursive: true });
   }
   /// The same bytes from the same sources: sorted, no owners or times, the
   /// same modes whatever the umask.

@@ -1,0 +1,5 @@
+{
+  "url": "https://github.com/microsoft/mimalloc/archive/refs/tags/v3.5.3.tar.gz",
+  "sha256": "3b4a15153a59905995f7070296ed604bb5ccc00cabb8b93446931aff77224d47",
+  "strip_prefix": "mimalloc-3.5.3"
+}

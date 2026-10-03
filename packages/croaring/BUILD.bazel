@@ -1,0 +1,48 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# The static library of CRoaring's CMake build, with its C++ wrapper
+# (roaring.hh). patches/0001: the headers' inline functions are GNU inline
+# in C++, so that a MinGW link sees one definition of each.
+cc_library(
+    name = "croaring",
+    srcs = [
+        "src/array_util.c",
+        "src/art/art.c",
+        "src/bitset.c",
+        "src/bitset_util.c",
+        "src/containers/array.c",
+        "src/containers/bitset.c",
+        "src/containers/containers.c",
+        "src/containers/convert.c",
+        "src/containers/mixed_andnot.c",
+        "src/containers/mixed_equal.c",
+        "src/containers/mixed_intersection.c",
+        "src/containers/mixed_negation.c",
+        "src/containers/mixed_subset.c",
+        "src/containers/mixed_union.c",
+        "src/containers/mixed_xor.c",
+        "src/containers/run.c",
+        "src/isadetection.c",
+        "src/memory.c",
+        "src/roaring.c",
+        "src/roaring64.c",
+        "src/roaring_array.c",
+        "src/roaring_priority_queue.c",
+    ],
+    hdrs = glob([
+        "include/roaring/**/*.h",
+        "cpp/roaring/*.hh",
+    ]),
+    copts = ["-w"],
+    includes = [
+        "cpp",
+        "include",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "roaring",
+    actual = ":croaring",
+    visibility = ["//visibility:public"],
+)

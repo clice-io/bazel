@@ -78,11 +78,12 @@ Windows (MinGW) included.
 packages/<name>/source.json   the library's release: url, sha256, strip_prefix
 packages/<name>/MODULE.bazel  the module: <name>, version <upstream>.clice.<n>
 packages/<name>/BUILD.bazel   how it builds (and any other file of the module)
+packages/<name>/patches/      our fixes to its source, each with what and why
 packages/<name>/test/         a package that uses it
 ```
 
-A module's source archive is the release's source, checked by its sha256,
-with its own Bazel files taken out and the package's put in
+A module's source archive is the release's source, checked by its sha256
+and patched, with its own Bazel files taken out and the package's put in
 (`scripts/package.ts`). `packages` builds every package's archive, builds
 and tests every package's `test/` with xclang on Linux, macOS and Windows,
 x86-64 and arm64, and on `main` publishes the archives through the action:

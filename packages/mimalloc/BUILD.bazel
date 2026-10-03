@@ -1,0 +1,76 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# mimalloc's CMake options as flags: MI_OVERRIDE (--@mimalloc//:override,
+# off: an allocator that takes malloc over is a choice of the whole program,
+# which CMake's default of on makes for it) and MI_SKIP_COLLECT_ON_EXIT
+# (--@mimalloc//:skip_collect_on_exit).
+bool_flag(
+    name = "override",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+bool_flag(
+    name = "skip_collect_on_exit",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "overrides",
+    flag_values = {":override": "true"},
+)
+
+config_setting(
+    name = "skips_collect_on_exit",
+    flag_values = {":skip_collect_on_exit": "true"},
+)
+
+# Its assertions as CMake's MI_DEBUG=DEFAULT has them: internal checks in a
+# debug build (-c dbg), none otherwise.
+config_setting(
+    name = "dbg",
+    values = {"compilation_mode": "dbg"},
+)
+
+config_setting(
+    name = "overrides_on_macos",
+    constraint_values = ["@platforms//os:macos"],
+    flag_values = {":override": "true"},
+)
+
+# The static library of mimalloc's CMake build (mimalloc-static), compiled
+# as one translation unit, src/static.c, which includes the others.
+cc_library(
+    name = "mimalloc",
+    srcs = ["src/static.c"],
+    hdrs = glob(["include/**/*.h"]),
+    copts = ["-w"] + select({
+        ":overrides": ["-fno-builtin-malloc"],
+        "//conditions:default": [],
+    }),
+    includes = ["include"],
+    linkopts = select({
+        "@platforms//os:windows": ["-lpsapi", "-lshell32", "-luser32", "-ladvapi32", "-lbcrypt"],
+        "//conditions:default": ["-pthread"],
+    }),
+    local_defines = ["MI_STATIC_LIB"] + select({
+        ":dbg": ["MI_DEBUG=2"],
+        "//conditions:default": ["MI_DEBUG=0"],
+    }) + select({
+        ":overrides": ["MI_MALLOC_OVERRIDE"],
+        "//conditions:default": [],
+    }) + select({
+        ":overrides_on_macos": ["MI_OSX_ZONE=1", "MI_OSX_INTERPOSE=1"],
+        "//conditions:default": [],
+    }) + select({
+        ":skips_collect_on_exit": ["MI_SKIP_COLLECT_ON_EXIT=1"],
+        "//conditions:default": [],
+    }),
+    textual_hdrs = glob(
+        ["src/**/*.c", "src/**/*.h"],
+        exclude = ["src/static.c"],
+    ),
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,74 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# spdlog's CMake options SPDLOG_USE_STD_FORMAT (std::format in place of the
+# bundled fmt) and SPDLOG_NO_EXCEPTIONS, as flags with the same defaults:
+# --@spdlog//:std_format=true, --@spdlog//:exceptions=false. Their defines
+# are public, as there, so that the library and what includes it agree.
+bool_flag(
+    name = "std_format",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+bool_flag(
+    name = "exceptions",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "use_std_format",
+    flag_values = {":std_format": "true"},
+)
+
+config_setting(
+    name = "no_exceptions",
+    flag_values = {":exceptions": "false"},
+)
+
+# The compiled library of spdlog's CMake build (SPDLOG_COMPILED_LIB), static.
+cc_library(
+    name = "spdlog",
+    srcs = [
+        "src/async.cpp",
+        "src/cfg.cpp",
+        "src/color_sinks.cpp",
+        "src/file_sinks.cpp",
+        "src/spdlog.cpp",
+        "src/stdout_sinks.cpp",
+    ] + select({
+        ":use_std_format": [],
+        "//conditions:default": ["src/bundled_fmtlib_format.cpp"],
+    }),
+    hdrs = glob(["include/spdlog/**/*.h"]),
+    copts = ["-w"] + select({
+        ":no_exceptions": ["-fno-exceptions"],
+        "//conditions:default": [],
+    }),
+    defines = ["SPDLOG_COMPILED_LIB"] + select({
+        ":use_std_format": ["SPDLOG_USE_STD_FORMAT"],
+        "//conditions:default": [],
+    }) + select({
+        ":no_exceptions": ["SPDLOG_NO_EXCEPTIONS"],
+        "//conditions:default": [],
+    }) + select({
+        ":no_exceptions_bundled_fmt": ["FMT_USE_EXCEPTIONS=0"],
+        "//conditions:default": [],
+    }),
+    includes = ["include"],
+    linkopts = select({
+        "@platforms//os:windows": [],
+        "//conditions:default": ["-pthread"],
+    }),
+    visibility = ["//visibility:public"],
+)
+
+# The bundled fmt without exceptions too, as spdlog's CMake build has it.
+config_setting(
+    name = "no_exceptions_bundled_fmt",
+    flag_values = {
+        ":exceptions": "false",
+        ":std_format": "false",
+    },
+)
