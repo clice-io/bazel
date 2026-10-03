@@ -1,9 +1,19 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-# The header-only C++ runtime (flatbuffers.h, flexbuffers.h, reflection).
+# The runtime library of flatbuffers' CMake build (FlatBuffers_Library_SRCS):
+# the headers, and the parser, reflection and locale-independent number
+# conversion that flexbuffers and reflection call into.
 cc_library(
     name = "flatbuffers",
+    srcs = [
+        "src/idl_gen_text.cpp",
+        "src/idl_gen_text.h",
+        "src/idl_parser.cpp",
+        "src/reflection.cpp",
+        "src/util.cpp",
+    ],
     hdrs = glob(["include/flatbuffers/**/*.h"]),
+    copts = ["-w"],
     includes = ["include"],
     visibility = ["//visibility:public"],
 )

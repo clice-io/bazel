@@ -23,7 +23,7 @@ import { spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { fail, integrity, moduleCall, readArchive, ROOT } from "./registry.ts";
+import { fail, integrity, moduleCall, ROOT } from "./registry.ts";
 
 const PACKAGES = path.join(ROOT, "packages");
 const WORK = path.join(ROOT, "work");
@@ -65,12 +65,17 @@ async function download(source: Source): Promise<string> {
 const BAZEL_FILES = new Set(["BUILD", "BUILD.bazel", "MODULE.bazel", "MODULE.bazel.lock", "REPO.bazel",
   "WORKSPACE", "WORKSPACE.bazel", "WORKSPACE.bzlmod", ".bazelrc", ".bazelversion"]);
 
+/// A package's archive and its top directory, <name>-<version>.
+function topDir(name: string): string {
+  const module = moduleCall(fs.readFileSync(path.join(PACKAGES, name, "MODULE.bazel"), "utf8"), `packages/${name}/MODULE.bazel`);
+  if (module.name !== name) fail(`packages/${name}/MODULE.bazel names ${module.name}`);
+  return `${name}-${module.version}`;
+}
+
 async function archive(name: string, dir: string): Promise<string> {
   const pkg = path.join(PACKAGES, name);
   const source: Source = JSON.parse(fs.readFileSync(path.join(pkg, "source.json"), "utf8"));
-  const module = moduleCall(fs.readFileSync(path.join(pkg, "MODULE.bazel"), "utf8"), `packages/${name}/MODULE.bazel`);
-  if (module.name !== name) fail(`packages/${name}/MODULE.bazel names ${module.name}`);
-  const top = `${name}-${module.version}`;
+  const top = topDir(name);
   const stage = path.join(WORK, "package", name);
   fs.rmSync(stage, { recursive: true, force: true });
   fs.mkdirSync(stage, { recursive: true });
@@ -94,16 +99,18 @@ async function archive(name: string, dir: string): Promise<string> {
 }
 
 /// work/tests: tests/ (the workspace's settings), MODULE.bazel with every
-/// archive in place of its version, and every package's test/ as <name>/.
+/// package's archive of <dir> in place of its version, and every package's
+/// test/ as <name>/.
 function workspace(dir: string): void {
-  const archives = fs.readdirSync(dir).filter((f) => f.endsWith(".tar.gz")).map((f) => path.resolve(dir, f)).sort();
-  if (!archives.length) fail(`no archives in ${dir}`);
   const work = path.join(WORK, "tests");
   fs.rmSync(work, { recursive: true, force: true });
   fs.cpSync(path.join(ROOT, "tests"), work, { recursive: true });
   const lines = [fs.readFileSync(path.join(ROOT, "tests", "MODULE.bazel"), "utf8")];
-  for (const file of archives) {
-    const { name, version, strip_prefix } = readArchive(file);
+  for (const name of packages([])) {
+    const strip_prefix = topDir(name);
+    const file = path.resolve(dir, `${strip_prefix}.tar.gz`);
+    if (!fs.existsSync(file)) fail(`no ${file}`);
+    const version = strip_prefix.slice(name.length + 1);
     const url = `file://${process.platform === "win32" ? "/" : ""}${file.replaceAll("\\", "/")}`;
     lines.push(`bazel_dep(name = "${name}", version = "${version}")`,
       `archive_override(module_name = "${name}", urls = ["${url}"], integrity = "${integrity(fs.readFileSync(file))}", strip_prefix = "${strip_prefix}")`, "");
