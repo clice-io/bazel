@@ -58,6 +58,9 @@ cc_library(
         ":skips_collect_on_exit": ["MI_SKIP_COLLECT_ON_EXIT=1"],
         "//conditions:default": [],
     }),
-    textual_hdrs = glob(["src/**/*.c"], exclude = ["src/static.c"]),
+    textual_hdrs = glob(
+        ["src/**/*.c", "src/**/*.h"],
+        exclude = ["src/static.c"],
+    ),
     visibility = ["//visibility:public"],
 )
