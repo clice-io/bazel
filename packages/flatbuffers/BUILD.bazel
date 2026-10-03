@@ -1,0 +1,9 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# The header-only C++ runtime (flatbuffers.h, flexbuffers.h, reflection).
+cc_library(
+    name = "flatbuffers",
+    hdrs = glob(["include/flatbuffers/**/*.h"]),
+    includes = ["include"],
+    visibility = ["//visibility:public"],
+)

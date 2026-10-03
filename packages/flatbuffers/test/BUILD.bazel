@@ -1,0 +1,7 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_test(
+    name = "flatbuffers_test",
+    srcs = ["flatbuffers_test.cpp"],
+    deps = ["@flatbuffers"],
+)

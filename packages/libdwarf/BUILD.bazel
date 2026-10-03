@@ -1,0 +1,88 @@
+load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# libdwarf and libdwarfp with zlib and zstd, for POSIX systems (Linux,
+# macOS): the configuration header from the Bazel Central Registry's
+# libdwarf 2.2.0.bcr.1 (Apache-2.0), its tests and dwarfdump left out.
+
+expand_template(
+    name = "config_h",
+    out = "src/lib/libdwarf/config.h",
+    # Enable features assuming we are compiling for a modern posix system.
+    substitutions = {
+        "#cmakedefine AC_APPLE_UNIVERSAL_BUILD 1": "",
+        "#cmakedefine CRAY_STACKSEG_END 1": "",
+        "#cmakedefine HAVE_DLFCN_H 1": "#define HAVE_DLFCN_H 1",
+        "#cmakedefine HAVE_FCNTL_H 1": "#define HAVE_FCNTL_H 1",
+        "#cmakedefine WORDS_BIGENDIAN 1": "",
+        "#cmakedefine HAVE_STDINT_H 1": "#define HAVE_STDINT_H 1",
+        "#cmakedefine HAVE_SYS_STAT_H 1": "#define HAVE_SYS_STAT_H 1",
+        "#cmakedefine HAVE_SYS_TYPES_H 1": "#define HAVE_SYS_TYPES_H 1",
+        "#cmakedefine HAVE_FULL_MMAP 1": "#define HAVE_FULL_MMAP 1",
+        "#cmakedefine uintptr_t  ${uintptr_t}": "",
+        "#cmakedefine intptr_t  ${intptr_t}": "",
+        "#cmakedefine HAVE_UNISTD_H 1": "#define HAVE_UNISTD_H 1",
+        "#cmakedefine HAVE_ZLIB 1": "#define HAVE_ZLIB 1",
+        "#cmakedefine HAVE_ZLIB_H 1": "#define HAVE_ZLIB_H 1",
+        "#cmakedefine HAVE_ZSTD 1": "#define HAVE_ZSTD 1",
+        "#cmakedefine HAVE_ZSTD_H 1": "#define HAVE_ZSTD_H 1",
+        "#cmakedefine LT_OBJDIR 1": "",
+        # PACKAGE_VERSION needs to be defined for the code to compile, but I
+        # don't really want to put the actual version in here since people are
+        # going to forget to update it, so just set it to empty string.
+        "#define PACKAGE_VERSION \"@PROJECT_VERSION@\"": "#define PACKAGE_VERSION \"\"",
+        "#define PACKAGE_BUGREPORT \"@PACKAGE_BUGREPORT@\"": "",
+        "#define PACKAGE_NAME \"@PROJECT_NAME@\"": "",
+        "#define PACKAGE_STRING \"@PACKAGE_STRING@\"": "",
+        "#cmakedefine PACKAGE_TARNAME": "",
+        "#define PACKAGE_URL \"@PROJECT_HOMEPAGE_URL@\"": "",
+        "#cmakedefine STACK_DIRECTION": "",
+        "#cmakedefine STDC_HEADERS 1": "#define STDC_HEADERS 1",
+        "#cmakedefine PACKAGE_VERSION ${PACKAGE_VERSION}": "",
+        # Must be substituted after all defines with a PACKAGE_* prefix,
+        # otherwise it will replace part of those defines.
+        "#cmakedefine PACKAGE": "",
+        "#cmakedefine HAVE_INTTYPES_H 1": "#define HAVE_INTTYPES_H 1",
+        "#cmakedefine HAVE_STDDEF_H 1": "#define HAVE_STDDEF_H 1",
+        "#cmakedefine HAVE_STDAFX_H 1": "#define HAVE_STDAFX_H 1",
+    } | select({
+        "@platforms//os:macos": {"#cmakedefine HAVE_MALLOC_H 1": ""},
+        "//conditions:default": {"#cmakedefine HAVE_MALLOC_H 1": "#define HAVE_MALLOC_H 1"},
+    }),
+    template = "cmake/config.h.in",
+)
+
+cc_library(
+    name = "dwarf",
+    srcs = [":config_h"] + glob(
+        [
+            "src/lib/libdwarf/*.c",
+            "src/lib/libdwarfp/*.c",
+        ],
+    ),
+    hdrs = glob(
+        [
+            "src/lib/libdwarf/*.h",
+            "src/lib/libdwarfp/*.h",
+        ],
+    ),
+    includes = [
+        "src/lib",
+        "src/lib/libdwarf",
+        "src/lib/libdwarfp",
+    ],
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        "@zlib",
+        "@zstd",
+    ],
+)
+
+alias(
+    name = "libdwarf",
+    actual = ":dwarf",
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,100 @@
+name: packages
+
+# The third-party libraries of packages/ (scripts/package.ts): every
+# package's archive, built and tested with xclang's toolchain on a machine of
+# every host and, on main, published like any module (action.yml). An
+# unchanged package gives the same archive, whose publishing is a no-op.
+
+on:
+  pull_request:
+    paths:
+      - packages/**
+      - scripts/package.ts
+      - scripts/registry.ts
+      - tests/**
+      - .github/workflows/packages.yml
+  push:
+    branches: [main]
+    paths:
+      - packages/**
+      - scripts/package.ts
+      - scripts/registry.ts
+      - tests/**
+      - .github/workflows/packages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archives:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/package.ts archive dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archives
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  test:
+    needs: archives
+    name: test (${{ matrix.host }})
+    strategy:
+      fail-fast: false
+      matrix:
+        host:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-w64-mingw32
+          - aarch64-w64-mingw32
+          - aarch64-apple-darwin
+          - x86_64-apple-darwin
+    runs-on: ${{ fromJSON('{"x86_64-unknown-linux-gnu":"ubuntu-24.04","aarch64-unknown-linux-gnu":"ubuntu-24.04-arm","x86_64-w64-mingw32":"windows-2025","aarch64-w64-mingw32":"windows-11-arm","aarch64-apple-darwin":"macos-15","x86_64-apple-darwin":"macos-15-intel"}')[matrix.host] }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm install -g @bazel/bazelisk
+      - uses: actions/download-artifact@v4
+        with:
+          name: archives
+          path: dist
+      - name: Test
+        run: |
+          node scripts/package.ts workspace dist
+          cd work/tests
+          # Windows: a short output root, and runfiles as symlinks.
+          startup=(); [[ "$RUNNER_OS" == Windows ]] && startup=(--output_user_root=C:/b --windows_enable_symlinks)
+          bazel "${startup[@]}" test //...
+          bazel "${startup[@]}" test -c opt //...
+
+  publish:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: archives
+          path: dist
+      - uses: ./
+        with:
+          archives: dist/*.tar.gz
+          token: ${{ secrets.UPLOAD_BAZEL }}
