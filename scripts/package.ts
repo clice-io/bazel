@@ -1,7 +1,8 @@
 /// Third-party libraries packaged here, one directory each in packages/:
 ///
 ///   packages/<name>/source.json   the library's release: url, sha256 and
-///                                 strip_prefix
+///                                 strip_prefix; none for a module that is
+///                                 only the package's own files (compdb)
 ///   packages/<name>/patches/      changes to its source, applied in order
 ///                                 (patch -p1)
 ///   packages/<name>/test/         a package that uses it, built by CI
@@ -43,7 +44,7 @@ function run(cmd: string, args: string[]): void {
 }
 
 function packages(names: string[]): string[] {
-  const all = fs.readdirSync(PACKAGES).filter((n) => fs.existsSync(path.join(PACKAGES, n, "source.json"))).sort();
+  const all = fs.readdirSync(PACKAGES).filter((n) => fs.existsSync(path.join(PACKAGES, n, "MODULE.bazel"))).sort();
   for (const n of names) if (!all.includes(n)) fail(`no package ${n}`);
   return names.length ? names : all;
 }
@@ -84,14 +85,18 @@ function topDir(name: string): string {
 
 async function archive(name: string, dir: string): Promise<string> {
   const pkg = path.join(PACKAGES, name);
-  const source: Source = JSON.parse(fs.readFileSync(path.join(pkg, "source.json"), "utf8"));
   const top = topDir(name);
   const stage = path.join(WORK, "package", name);
   fs.rmSync(stage, { recursive: true, force: true });
   fs.mkdirSync(stage, { recursive: true });
-  run("tar", ["-xf", await download(source), "-C", stage]);
   const root = path.join(stage, top);
-  fs.renameSync(path.join(stage, source.strip_prefix), root);
+  if (fs.existsSync(path.join(pkg, "source.json"))) {
+    const source: Source = JSON.parse(fs.readFileSync(path.join(pkg, "source.json"), "utf8"));
+    run("tar", ["-xf", await download(source), "-C", stage]);
+    fs.renameSync(path.join(stage, source.strip_prefix), root);
+  } else {
+    fs.mkdirSync(root);
+  }
   const patches = path.join(pkg, "patches");
   for (const patch of fs.existsSync(patches) ? fs.readdirSync(patches).filter((f) => f.endsWith(".patch")).sort() : []) {
     run("patch", ["-p1", "-F0", "--forward", "--no-backup-if-mismatch", "-d", root, "-i", path.join(patches, patch)]);
