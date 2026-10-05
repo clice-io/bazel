@@ -1,0 +1,37 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# What compdb's check.ts asks compile commands of: a program and its library,
+# a C program on another repository's library (zlib), and C++20 modules with
+# import std (xclang's, another repository's sources too).
+cc_library(
+    name = "greet",
+    srcs = ["greet.cpp"],
+    hdrs = ["greet.h"],
+)
+
+cc_binary(
+    name = "hello",
+    srcs = ["hello.cpp"],
+    deps = [":greet"],
+)
+
+cc_binary(
+    name = "zipper",
+    srcs = ["zipper.c"],
+    deps = ["@zlib"],
+)
+
+cc_library(
+    name = "shapes",
+    features = ["cpp_modules"],
+    module_interfaces = ["shapes.cppm"],
+    deps = ["@xclang//bazel:std"],
+)
+
+cc_binary(
+    name = "area",
+    srcs = ["area.cpp"],
+    features = ["cpp_modules"],
+    deps = [":shapes"],
+)

@@ -1,0 +1,12 @@
+"""compile_commands.json for a Bazel workspace's C and C++, with any
+toolchain:
+
+    bazel run @compdb//:refresh [-- <bazel build options> <targets>]
+"""
+
+module(
+    name = "compdb",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")

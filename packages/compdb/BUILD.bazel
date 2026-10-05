@@ -1,0 +1,11 @@
+load(":refresh.bzl", "compdb_refresh")
+
+exports_files(["compdb.bzl"])
+
+# bazel run @compdb//:refresh [-- <bazel build options> <targets>]: the
+# compile commands of the targets (//... if none is given) and of their
+# dependencies, in the workspace's compile_commands.json.
+compdb_refresh(
+    name = "refresh",
+    visibility = ["//visibility:public"],
+)

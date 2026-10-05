@@ -76,10 +76,12 @@ Windows (MinGW) included.
 
 ```
 packages/<name>/source.json   the library's release: url, sha256, strip_prefix
+                              (none: a module of the package's files only)
 packages/<name>/MODULE.bazel  the module: <name>, version <upstream>.clice.<n>
 packages/<name>/BUILD.bazel   how it builds (and any other file of the module)
 packages/<name>/patches/      our fixes to its source, each with what and why
-packages/<name>/test/         a package that uses it
+packages/<name>/test/         a package that uses it, and check.ts if
+                              it needs more than its tests
 ```
 
 A module's source archive is the release's source, checked by its sha256
@@ -99,3 +101,32 @@ scripts/check.ts      the check pull requests wait for
 scripts/pages.ts      the registry on gh-pages
 scripts/package.ts    the packages' archives and their tests' workspace
 ```
+
+### compdb
+
+`compdb`, a module of its own here, gives any Bazel workspace's C and C++
+a `compile_commands.json`, whatever the toolchain:
+
+```starlark
+bazel_dep(name = "compdb", version = "0.1.0", dev_dependency = True)
+```
+
+```sh
+bazel run @compdb//:refresh                         # //...
+bazel run @compdb//:refresh -- --config=dev //src/...
+```
+
+The arguments are a `bazel build`'s, options and targets (`//...` if none
+is given). It builds the targets with an aspect, `@compdb//:compdb.bzl%compdb`,
+that compiles nothing and writes the compile commands of each target and of
+its dependencies, other repositories' included, as rules_cc's actions have
+them (C, C++, C++20 module interfaces and their importers, Objective-C),
+and merges them into `compile_commands.json` in the workspace's directory.
+Every entry's `directory` is the execution root (`bazel info
+execution_root`), which its paths (`external/...`, `bazel-out/...`) are
+relative to; being a build of the targets, the refresh leaves the execution
+root with their repositories under `external/`, which `bazel run` itself
+would not. Files a build generates, headers or an importer's `.modmap` and
+module files, exist once one has made them; a tool that scans the modules
+itself, as clice does, needs none. Bazel is `bazel` from `PATH`, or
+`$COMPDB_BAZEL`; its startup options come from the `.bazelrc` files.

@@ -81,6 +81,11 @@ jobs:
           startup=(); [[ "$RUNNER_OS" == Windows ]] && startup=(--output_user_root=C:/b --windows_enable_symlinks)
           bazel "${startup[@]}" test //...
           bazel "${startup[@]}" test -c opt //...
+      # A package's check.ts, if it has one, past its tests: run in the
+      # workspace, as its users run it (compdb's bazel run).
+      - name: Checks
+        working-directory: work/tests
+        run: for check in */check.ts; do if [[ -e "$check" ]]; then node "$check"; fi; done
 
   publish:
     needs: test
