@@ -1,0 +1,25 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# MinHook, the static library of its CMake build. It hooks x86 and x86-64
+# Windows code only: elsewhere, Windows on arm64 included, it is
+# incompatible, and builds of //... skip it.
+cc_library(
+    name = "minhook",
+    srcs = [
+        "src/buffer.c",
+        "src/hook.c",
+        "src/trampoline.c",
+        # Each compiles to nothing on the other architecture.
+        "src/hde/hde32.c",
+        "src/hde/hde64.c",
+    ] + glob(["src/**/*.h"]),
+    hdrs = ["include/MinHook.h"],
+    copts = ["-w"],
+    includes = ["include"],
+    target_compatible_with = ["@platforms//os:windows"] + select({
+        "@platforms//cpu:x86_32": [],
+        "@platforms//cpu:x86_64": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    visibility = ["//visibility:public"],
+)

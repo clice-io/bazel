@@ -1,0 +1,12 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_test(
+    name = "minhook_test",
+    srcs = ["minhook_test.c"],
+    target_compatible_with = ["@platforms//os:windows"] + select({
+        "@platforms//cpu:x86_32": [],
+        "@platforms//cpu:x86_64": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = ["@minhook"],
+)
