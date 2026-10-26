@@ -1,0 +1,35 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# Detours, the static library its Makefile builds (src/), for Windows only:
+# elsewhere it is incompatible, and builds of //... skip it. The version is
+# Detours' own, 4.0.1, and the date of the commit of main it is built from:
+# Detours has made no release since 4.0.1, and main has the hooks of
+# ARM64EC functions (#388).
+cc_library(
+    name = "detours",
+    # Every source but uimports.cpp, which creatwth.cpp includes once per
+    # architecture; the disol*.cpp include disasm.cpp, as the disassembler
+    # of each other architecture.
+    srcs = glob(
+        ["src/*.cpp"],
+        exclude = ["src/uimports.cpp"],
+    ),
+    hdrs = [
+        "src/detours.h",
+        "src/detver.h",
+    ],
+    textual_hdrs = [
+        "src/disasm.cpp",
+        "src/uimports.cpp",
+    ],
+    # The 0ui64 literals of the ARM64 code; detours.h turns __try and
+    # __except into nothing for GNU compilers.
+    copts = ["-w"] + select({
+        "@platforms//cpu:aarch64": ["-fms-extensions"],
+        "//conditions:default": [],
+    }),
+    includes = ["src"],
+    local_defines = ["WIN32_LEAN_AND_MEAN"],
+    target_compatible_with = ["@platforms//os:windows"],
+    visibility = ["//visibility:public"],
+)
