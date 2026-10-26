@@ -1,0 +1,22 @@
+--- a/src/creatwth.cpp
++++ b/src/creatwth.cpp
+@@ -93,7 +93,7 @@
+         *pRemoteNtHeader = NULL;
+     }
+ 
+-    PBYTE pbLast = (PBYTE)hModuleLast + MM_ALLOCATION_GRANULARITY;
++    PBYTE pbLast = (PBYTE)((ULONG_PTR)hModuleLast + MM_ALLOCATION_GRANULARITY);
+ 
+     MEMORY_BASIC_INFORMATION mbi;
+     ZeroMemory(&mbi, sizeof(mbi));
+--- a/src/modules.cpp
++++ b/src/modules.cpp
+@@ -248,7 +248,7 @@
+ 
+ HMODULE WINAPI DetourEnumerateModules(_In_opt_ HMODULE hModuleLast)
+ {
+-    PBYTE pbLast = (PBYTE)hModuleLast + MM_ALLOCATION_GRANULARITY;
++    PBYTE pbLast = (PBYTE)((ULONG_PTR)hModuleLast + MM_ALLOCATION_GRANULARITY);
+ 
+     MEMORY_BASIC_INFORMATION mbi;
+     ZeroMemory(&mbi, sizeof(mbi));
