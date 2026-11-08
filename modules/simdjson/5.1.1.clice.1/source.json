@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-WIYJrl2FmINIgpdkhVeTKwM+u58tT08HP0jNLteDmw8=",
+  "strip_prefix": "simdjson-5.1.1.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/simdjson-5.1.1.clice.1/simdjson-5.1.1.clice.1.tar.gz"
+}
