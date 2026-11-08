@@ -88,7 +88,7 @@ cc_library(
     hdrs = glob(["include/**/*.h"]),
     copts = ["-w", "-fno-strict-aliasing", "-fvisibility=hidden"],
     linkopts = select({
-        "@platforms//os:windows": ["-lpsapi", "-luser32", "-ladvapi32", "-liphlpapi", "-luserenv", "-lws2_32", "-ldbghelp", "-lole32", "-lshell32", "-lsynchronization"],
+        "@platforms//os:windows": ["-lpsapi", "-luser32", "-ladvapi32", "-liphlpapi", "-luserenv", "-lws2_32", "-ldbghelp", "-lole32", "-lshell32"],
         "@platforms//os:linux": ["-pthread", "-ldl", "-lrt"],
         "//conditions:default": ["-pthread"],
     }),
