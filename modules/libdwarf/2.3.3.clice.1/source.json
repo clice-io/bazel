@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-RetzeESJhUaF3t7rLXj5DZXjufqybn4RLYeb3o4qxyI=",
+  "strip_prefix": "libdwarf-2.3.3.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/libdwarf-2.3.3.clice.1/libdwarf-2.3.3.clice.1.tar.gz"
+}
