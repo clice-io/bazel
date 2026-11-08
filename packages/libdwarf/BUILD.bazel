@@ -38,7 +38,6 @@ expand_template(
         "#define PACKAGE_URL \"@PROJECT_HOMEPAGE_URL@\"": "",
         "#cmakedefine STACK_DIRECTION": "",
         "#cmakedefine STDC_HEADERS 1": "#define STDC_HEADERS 1",
-        "#cmakedefine PACKAGE_VERSION ${PACKAGE_VERSION}": "",
         # Must be substituted after all defines with a PACKAGE_* prefix,
         # otherwise it will replace part of those defines.
         "#cmakedefine PACKAGE": "",

@@ -1,5 +1,5 @@
 {
-  "url": "https://github.com/davea42/libdwarf-code/releases/download/v2.2.0/libdwarf-2.2.0.tar.xz",
-  "sha256": "54c0abbbeb4190bd1babb5d28574d2b20c2309343ec764cc7ca611e527ee4a42",
-  "strip_prefix": "libdwarf-2.2.0"
+  "url": "https://github.com/davea42/libdwarf-code/releases/download/v2.3.3/libdwarf-2.3.3.tar.xz",
+  "sha256": "bde13d1c49be6f2467326a6e0b3919247471455d16eefc3c6be26c7d4baca36a",
+  "strip_prefix": "libdwarf-2.3.3"
 }
