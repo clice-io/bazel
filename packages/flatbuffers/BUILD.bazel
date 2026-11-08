@@ -6,6 +6,8 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 cc_library(
     name = "flatbuffers",
     srcs = [
+        "src/file_manager.cpp",
+        "src/file_name_manager.cpp",
         "src/idl_gen_text.cpp",
         "src/idl_gen_text.h",
         "src/idl_parser.cpp",

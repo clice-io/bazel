@@ -1,5 +1,5 @@
 {
-  "url": "https://github.com/LMDB/lmdb/archive/refs/tags/LMDB_0.9.31.tar.gz",
-  "sha256": "dd70a8c67807b3b8532b3e987b0a4e998962ecc28643e1af5ec77696b081c9b0",
-  "strip_prefix": "lmdb-LMDB_0.9.31"
+  "url": "https://github.com/LMDB/lmdb/archive/refs/tags/LMDB_0.9.36.tar.gz",
+  "sha256": "7d55c3cbc1ef55f9b0076d3ddb16d0d9996d05b9caa7ca889ce10430ac677b90",
+  "strip_prefix": "lmdb-LMDB_0.9.36"
 }
