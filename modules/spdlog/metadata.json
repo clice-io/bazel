@@ -1,6 +1,7 @@
 {
   "versions": [
-    "1.15.3.clice.1"
+    "1.15.3.clice.1",
+    "1.17.0.clice.1"
   ],
   "yanked_versions": {}
 }

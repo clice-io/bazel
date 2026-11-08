@@ -1,0 +1,5 @@
+{
+  "integrity": "sha256-p6lW8SmiJXKdac2J639caLT3xAgL0slzv6QoQUGvJoI=",
+  "strip_prefix": "spdlog-1.17.0.clice.1",
+  "url": "https://github.com/clice-io/bazel/releases/download/spdlog-1.17.0.clice.1/spdlog-1.17.0.clice.1.tar.gz"
+}

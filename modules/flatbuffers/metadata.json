@@ -1,6 +1,7 @@
 {
   "versions": [
-    "25.2.10.clice.1"
+    "25.2.10.clice.1",
+    "25.12.19.clice.1"
   ],
   "yanked_versions": {}
 }
