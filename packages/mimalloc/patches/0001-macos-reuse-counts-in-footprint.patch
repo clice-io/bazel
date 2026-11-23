@@ -1,0 +1,25 @@
+--- a/src/prim/unix/prim.c
++++ b/src/prim/unix/prim.c
+@@ -460,6 +460,11 @@
+     err = errno;
+     unix_mprotect_hint(err);
+   }
++  #if defined(__APPLE__) && defined(MADV_FREE_REUSE)
++  // pages a decommit made reusable count in the footprint again only once
++  // the kernel is told they are in use
++  if (err == 0) { unix_madvise(start, size, MADV_FREE_REUSE); }
++  #endif
+   return err;
+ }
+ 
+@@ -487,6 +492,10 @@
+     *needs_recommit = true;
+     mprotect(start, size, PROT_NONE);
+   #endif
++  #if defined(__APPLE__) && defined(MADV_FREE_REUSABLE)
++    // recommitted before reuse, which tells the kernel (_mi_prim_commit)
++    *needs_recommit = true;
++  #endif
+   /*
+   // decommit: use mmap with MAP_FIXED and PROT_NONE to discard the existing memory (and reduce rss)
+   *needs_recommit = true;

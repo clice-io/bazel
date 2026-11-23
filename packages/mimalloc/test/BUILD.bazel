@@ -13,3 +13,9 @@ cc_test(
     tags = ["manual"],
     deps = ["@mimalloc"],
 )
+
+cc_test(
+    name = "footprint_test",
+    srcs = ["footprint_test.c"],
+    deps = ["@mimalloc"],
+)
