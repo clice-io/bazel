@@ -1,10 +1,15 @@
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 # mimalloc's CMake options as flags: MI_OVERRIDE (--@mimalloc//:override,
 # off: an allocator that takes malloc over is a choice of the whole program,
 # which CMake's default of on makes for it) and MI_SKIP_COLLECT_ON_EXIT
-# (--@mimalloc//:skip_collect_on_exit).
+# (--@mimalloc//:skip_collect_on_exit). The override takes malloc over on
+# Linux and macOS and does nothing on Windows: a static mimalloc's free
+# there would take the blocks the UCRT allocates for itself (strdup,
+# _wgetcwd(nullptr)) for its own, so a Windows program routes its
+# allocations itself. A program sets it once for all its targets.
 bool_flag(
     name = "override",
     build_setting_default = False,
@@ -15,11 +20,6 @@ bool_flag(
     name = "skip_collect_on_exit",
     build_setting_default = False,
     visibility = ["//visibility:public"],
-)
-
-config_setting(
-    name = "overrides",
-    flag_values = {":override": "true"},
 )
 
 config_setting(
@@ -35,9 +35,23 @@ config_setting(
 )
 
 config_setting(
+    name = "overrides_on_linux",
+    constraint_values = ["@platforms//os:linux"],
+    flag_values = {":override": "true"},
+)
+
+config_setting(
     name = "overrides_on_macos",
     constraint_values = ["@platforms//os:macos"],
     flag_values = {":override": "true"},
+)
+
+selects.config_setting_group(
+    name = "overrides",
+    match_any = [
+        ":overrides_on_linux",
+        ":overrides_on_macos",
+    ],
 )
 
 # The static library of mimalloc's CMake build (mimalloc-static), compiled

@@ -5,3 +5,11 @@ cc_test(
     srcs = ["mimalloc_test.c"],
     deps = ["@mimalloc"],
 )
+
+cc_test(
+    name = "override_test",
+    srcs = ["override_test.c"],
+    # check.ts runs it with --@mimalloc//:override=true.
+    tags = ["manual"],
+    deps = ["@mimalloc"],
+)
