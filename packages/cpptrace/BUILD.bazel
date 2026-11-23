@@ -2,7 +2,8 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 # Static, configured for each platform as cpptrace's CMake build picks
 # (Autoconfig.cmake): libdwarf for symbols on Linux and macOS, the unwinder
-# of the C++ runtime (LLVM's libunwind with xclang), dbghelp on Windows.
+# of the C++ runtime (LLVM's libunwind with xclang), dbghelp on Windows;
+# glibc's dladdr1, which patches/0001 drops on musl.
 cc_library(
     name = "src_headers",
     hdrs = glob(["src/**/*.hpp", "src/**/*.h"], allow_empty = True),
