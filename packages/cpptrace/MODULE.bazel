@@ -1,6 +1,6 @@
 module(
     name = "cpptrace",
-    version = "1.0.4.clice.2",
+    version = "1.0.4.clice.3",
 )
 
 bazel_dep(name = "libdwarf", version = "2.3.3.clice.1")
